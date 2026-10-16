@@ -48,6 +48,7 @@
     $('form-error').hidden = true;
     $('start-time').removeAttribute('aria-invalid');
     $('end-time').removeAttribute('aria-invalid');
+    $('credits').removeAttribute('aria-invalid');
   }
   function resetEditor() {
     editingId = null;
@@ -60,6 +61,7 @@
     editingId = duplicate ? null : section.id;
     $('class-code').value = section.classCode;
     $('description').value = section.description;
+    $('credits').value = section.credits ?? '';
     $('start-time').value = section.startTime;
     $('end-time').value = section.endTime;
     form.querySelectorAll('input[name="day"]').forEach(input => { input.checked = section.days.includes(Number(input.value)); });
@@ -111,8 +113,8 @@
     const checked = sections.filter(s => s.checked);
     $('calendar-empty').hidden = checked.length > 0;
     $('selected-count').textContent = `${checked.length} section${checked.length === 1 ? '' : 's'} selected`;
-    const hours = Math.round(C.weeklyMinutes(sections) / 60 * 100) / 100;
-    $('weekly-hours').textContent = `${hours} hr${hours === 1 ? '' : 's'} / week`;
+    const credits = C.totalCredits(sections);
+    $('selected-credits').textContent = `${credits} credit${credits === 1 ? '' : 's'} selected`;
     $('conflict-notice').hidden = conflictIds.size === 0;
     $('conflict-notice').querySelector('span').textContent = `${conflictIds.size} sections overlap.`;
   }
@@ -141,7 +143,9 @@
       if (C.subtitle(section)) info.append(node('div', 'section-description', C.subtitle(section)));
       const meta = node('div', 'section-meta');
       meta.append(node('span', '', section.days.map(d => C.DAYS[d].short).join(' · ')));
-      const time = node('span', 'section-time'); time.append(icon('clock'), document.createTextNode(`${C.formatTime(section.startTime)}–${C.formatTime(section.endTime)}`)); meta.append(time); info.append(meta);
+      const time = node('span', 'section-time'); time.append(icon('clock'), document.createTextNode(`${C.formatTime(section.startTime)}–${C.formatTime(section.endTime)}`)); meta.append(time);
+      if (section.credits != null) meta.append(node('span', 'section-credits', `${section.credits} credit${section.credits === 1 ? '' : 's'}`));
+      info.append(meta);
       const actions = node('div', 'section-actions');
       const actionSpecs = [
         ['edit', 'Edit section', () => fillEditor(section)],
@@ -198,6 +202,7 @@
     const section = {
       id: editingId || (globalThis.crypto?.randomUUID ? crypto.randomUUID() : 's-' + Date.now() + '-' + Math.random().toString(36).slice(2)),
       classCode: $('class-code').value.trim(), description: $('description').value.trim(),
+      credits: $('credits').value === '' ? null : $('credits').valueAsNumber,
       startTime: $('start-time').value, endTime: $('end-time').value,
       days: [...form.querySelectorAll('input[name="day"]:checked')].map(input => Number(input.value)),
       checked: original ? original.checked : true,
@@ -208,7 +213,8 @@
       $('form-error').textContent = error; $('form-error').hidden = false;
       if (C.minutes(section.endTime) <= C.minutes(section.startTime)) {
         $('end-time').setAttribute('aria-invalid', 'true'); $('end-time').focus();
-      } else form.querySelector('input[name="day"]').focus();
+      } else if (section.days.length === 0) form.querySelector('input[name="day"]').focus();
+      else { $('credits').setAttribute('aria-invalid', 'true'); $('credits').focus(); }
       return;
     }
     if (original) sections = sections.map(s => s.id === original.id ? section : s);

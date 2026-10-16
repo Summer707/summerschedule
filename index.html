@@ -39,7 +39,7 @@
 
         <div class="calendar-card">
           <div class="calendar-toolbar">
-            <div class="calendar-stats"><span id="selected-count">0 sections selected</span><span class="stat-divider"></span><span id="weekly-hours">0 hrs / week</span></div>
+            <div class="calendar-stats"><span id="selected-count">0 sections selected</span><span class="stat-divider"></span><span id="selected-credits" aria-live="polite" aria-atomic="true">0 credits selected</span></div>
           </div>
           <div id="conflict-notice" class="conflict-notice" hidden><svg class="icon"><use href="#i-alert"/></svg><span></span></div>
           <div id="calendar-scroll" class="calendar-scroll" tabindex="0" role="region" aria-label="Weekly class calendar. Scroll to view all days and times.">
@@ -64,6 +64,7 @@
           <div class="form-fields">
             <div class="field"><label for="class-code">Class <span class="optional">optional</span></label><input id="class-code" name="classCode" placeholder="e.g. BUSI 100" maxlength="100" autocomplete="off" /></div>
             <div class="field description-field"><label for="description">Description <span class="optional">optional</span></label><input id="description" name="description" placeholder="e.g. Intro to business" maxlength="200" autocomplete="off" /></div>
+            <div class="field credits-field"><label for="credits">Credits <span class="optional">optional</span></label><input id="credits" name="credits" type="number" min="0" step="any" placeholder="e.g. 3" inputmode="decimal" /></div>
             <div class="field"><label for="start-time">Start time</label><input id="start-time" name="startTime" type="time" value="09:00" required /></div>
             <div class="field"><label for="end-time">End time</label><input id="end-time" name="endTime" type="time" value="10:00" required /></div>
           </div>

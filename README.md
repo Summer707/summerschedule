@@ -11,10 +11,12 @@ Use the same browser and address each time: your schedule is saved automatically
 ## Build your week
 
 1. Enter a class code, a description, both, or neither. When both are entered, the class code appears above the description. With neither, the name remains blank.
-2. Set start and end times, then check the days the section meets.
+2. Enter optional credits (including fractional credits), set start and end times, then check the days the section meets.
 3. Select **Add section**. It appears in the checklist and on the calendar.
 4. Check or uncheck sections to compare possible schedules. You may add any number of options for the same class. Overlapping sections appear side by side.
 5. Use the pencil to edit, the copy button to prefill a new option, and the trash button to delete. Deleting offers an undo button.
+
+The calendar shows the total credits for checked sections, counting each section once regardless of its meeting days. Blank credits count as zero. Existing saved classes stay intact and can be edited to add credits.
 
 The calendar automatically expands for early or late classes. It shows a recurring Monday–Sunday week, and meeting times must end later on the same day. On smaller screens, scroll the calendar sideways to see the whole week.
 

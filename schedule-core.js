@@ -34,6 +34,7 @@
     if (end <= start) return 'End time must be later than start time.';
     if (!Array.isArray(section.days) || !section.days.length) return 'Choose at least one day of the week.';
     if (section.days.some(day => !Number.isInteger(day) || day < 0 || day > 6)) return 'Choose valid days of the week.';
+    if (section.credits != null && (!Number.isFinite(section.credits) || section.credits < 0)) return 'Credits must be zero or a positive number.';
     return '';
   }
   function normalize(value) {
@@ -43,6 +44,8 @@
       classCode: typeof value.classCode === 'string' ? value.classCode.trim().slice(0, 100) : '',
       description: typeof value.description === 'string' ? value.description.trim().slice(0, 200) : '',
       startTime: value.startTime, endTime: value.endTime,
+      // Older schedules have no credits; keep their classes and leave this field blank.
+      credits: Number.isFinite(value.credits) && value.credits >= 0 ? value.credits : null,
       days: Array.isArray(value.days) ? [...new Set(value.days)].sort((a, b) => a - b) : [],
       checked: value.checked !== false,
       color: Number.isInteger(value.color) && value.color >= 0 && value.color < COLORS.length ? value.color : 0,
@@ -87,7 +90,11 @@
   function weeklyMinutes(sections) {
     return sections.filter(s => s.checked).reduce((sum, s) => sum + (minutes(s.endTime) - minutes(s.startTime)) * s.days.length, 0);
   }
-  const api = { DAYS, COLORS, minutes, formatTime, title, subtitle, validate, normalize, layoutDay, calendarBounds, weeklyMinutes };
+  function totalCredits(sections) {
+    const total = sections.filter(s => s.checked).reduce((sum, s) => sum + (s.credits ?? 0), 0);
+    return Number(total.toFixed(10));
+  }
+  const api = { DAYS, COLORS, minutes, formatTime, title, subtitle, validate, normalize, layoutDay, calendarBounds, weeklyMinutes, totalCredits };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.ScheduleCore = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
