@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+Thumbs.db
+
+# Local previews may contain personal schedule information.
+preview.jpg
+*-screenshot.*
+.sites-runtime/

@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#243e2e" />
+    <meta name="description" content="Build your weekly class schedule and compare sections." />
+    <title>summerschedule</title>
+    <link rel="icon" type="image/png" href="logo.png?v=2" />
+    <link rel="stylesheet" href="styles.css" />
+    <script src="schedule-core.js" defer></script>
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <svg class="icon-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M7 3v4m10-4v4M3 11h18m-13 5h2m4 0h2"/></symbol>
+      <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+      <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+      <symbol id="i-edit" viewBox="0 0 24 24"><path d="m15 5 4 4M4 20l4-1L20 7a2.8 2.8 0 0 0-4-4L4 15z"/></symbol>
+      <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M15 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h3"/></symbol>
+      <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7m4-7v7"/></symbol>
+      <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+      <symbol id="i-alert" viewBox="0 0 24 24"><path d="m10 4-8 14a2 2 0 0 0 2 3h16a2 2 0 0 0 2-3L14 4a2.3 2.3 0 0 0-4 0Z"/><path d="M12 9v5m0 3h.01"/></symbol>
+      <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol>
+    </svg>
+
+    <header id="top" class="site-header">
+      <div class="header-inner">
+        <a class="brand" href="#top" aria-label="summerschedule home"><img class="brand-logo" src="logo.png?v=2" width="112" height="112" alt="" />summerschedule</a>
+        <span id="save-status" class="save-status"><svg class="icon"><use href="#i-check"/></svg>Saved</span>
+      </div>
+    </header>
+
+    <main class="page">
+      <section aria-labelledby="schedule-heading">
+        <div class="page-heading">
+          <h1 id="schedule-heading">Class schedule</h1>
+        </div>
+
+        <div class="calendar-card">
+          <div class="calendar-toolbar">
+            <div class="calendar-stats"><span id="selected-count">0 sections selected</span><span class="stat-divider"></span><span id="weekly-hours">0 hrs / week</span></div>
+          </div>
+          <div id="conflict-notice" class="conflict-notice" hidden><svg class="icon"><use href="#i-alert"/></svg><span></span></div>
+          <div id="calendar-scroll" class="calendar-scroll" tabindex="0" role="region" aria-label="Weekly class calendar. Scroll to view all days and times.">
+            <div class="calendar-inner">
+              <div class="day-header"><span class="time-header">TIME</span><div id="day-names" class="day-names"></div></div>
+              <div id="calendar-body" class="calendar-body">
+                <div id="time-labels" class="time-labels" aria-hidden="true"></div>
+                <div id="day-columns" class="day-columns"></div>
+                <div id="calendar-empty" class="calendar-empty">
+                  <h2>No sections selected</h2>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="calendar-footer"><span class="mobile-scroll-hint">Scroll sideways for more days</span></div>
+        </div>
+      </section>
+
+      <section id="class-editor" class="editor-card" aria-labelledby="form-heading">
+        <div class="section-heading"><div class="section-heading-title"><h2 id="form-heading">Add a class</h2></div></div>
+        <form id="class-form">
+          <div class="form-fields">
+            <div class="field"><label for="class-code">Class <span class="optional">optional</span></label><input id="class-code" name="classCode" placeholder="e.g. BUSI 100" maxlength="100" autocomplete="off" /></div>
+            <div class="field description-field"><label for="description">Description <span class="optional">optional</span></label><input id="description" name="description" placeholder="e.g. Intro to business" maxlength="200" autocomplete="off" /></div>
+            <div class="field"><label for="start-time">Start time</label><input id="start-time" name="startTime" type="time" value="09:00" required /></div>
+            <div class="field"><label for="end-time">End time</label><input id="end-time" name="endTime" type="time" value="10:00" required /></div>
+          </div>
+          <div class="form-bottom">
+            <fieldset class="days-fieldset"><legend>Days of the week <span class="required-hint">Choose at least one</span></legend><div id="day-options" class="day-options"></div></fieldset>
+            <div class="submit-actions"><button id="cancel-edit" class="button button-secondary" type="button" hidden>Cancel</button><button id="submit-button" class="button button-primary" type="submit"><svg class="icon"><use href="#i-plus"/></svg><span>Add section</span></button></div>
+          </div>
+          <p id="form-error" class="form-error" role="alert" hidden></p>
+        </form>
+      </section>
+
+      <section class="sections-card" aria-labelledby="sections-heading">
+        <div class="section-heading"><div class="section-heading-title"><h2 id="sections-heading">Your sections</h2><span id="section-count" class="count-badge">0</span></div></div>
+        <div id="sections-empty" class="sections-empty"><h3>No sections yet</h3></div>
+        <ul id="section-list" class="section-list" aria-label="Sections to show on the calendar"></ul>
+      </section>
+    </main>
+    <div id="toast" class="toast" role="status" hidden><span id="toast-message"></span><button id="undo-delete" type="button" hidden>Undo</button><button id="close-toast" class="toast-close" type="button" aria-label="Dismiss notification"><svg class="icon"><use href="#i-close"/></svg></button></div>
+    <noscript><p class="noscript-note">Enable JavaScript to add classes and use the calendar.</p></noscript>
+  </body>
+</html>
