@@ -68,3 +68,33 @@ test('weekly totals and noon/midnight labels are accurate', () => {
   assert.equal(C.formatTime('12:00'), '12:00 PM');
   assert.equal(C.formatTime('13:05'), '1:05 PM');
 });
+
+test('credits count each checked section once, including alternative sections of the same class', () => {
+  assert.equal(C.totalCredits([]), 0);
+  assert.equal(C.totalCredits([
+    section({ credits: 3 }),
+    section({ id: 'b', credits: 4, days: [1] }),
+    section({ id: 'c', credits: 5, checked: false }),
+    section({ id: 'd', credits: null }),
+    section({ id: 'e' }),
+  ]), 7);
+  assert.equal(C.totalCredits([section({ credits: 0.1 }), section({ id: 'b', credits: 0.2 })]), 0.3);
+});
+
+test('optional credits accept zero and fractions while rejecting invalid amounts', () => {
+  for (const credits of [undefined, null, 0, 1, 2.5]) assert.equal(C.validate(section({ credits })), '');
+  for (const credits of [-1, NaN, Infinity, '3', '']) assert.ok(C.validate(section({ credits })));
+});
+
+test('saved credits survive reloads and legacy or damaged credit fields preserve the class', () => {
+  const saved = C.normalize(JSON.parse(JSON.stringify(section({ credits: 2.5 }))));
+  assert.equal(saved.credits, 2.5);
+  assert.equal(C.totalCredits([saved]), 2.5);
+  for (const credits of [undefined, null, -1, 'bad', Infinity]) {
+    const restored = C.normalize(section({ credits }));
+    assert.equal(restored.classCode, 'BUSI 100');
+    assert.equal(restored.credits, null);
+    assert.equal(C.totalCredits([restored]), 0);
+  }
+  assert.equal(C.normalize(section({ credits: 0 })).credits, 0);
+});
