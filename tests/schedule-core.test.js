@@ -98,3 +98,44 @@ test('saved credits survive reloads and legacy or damaged credit fields preserve
   }
   assert.equal(C.normalize(section({ credits: 0 })).credits, 0);
 });
+
+test('default alphabetical order uses natural class numbers, descriptions, and blank names last', () => {
+  const list = [
+    section({ id: 'blank', classCode: '', description: '' }),
+    section({ id: 'math', classCode: 'MATH 101' }),
+    section({ id: 'ten', classCode: 'BUSI 10' }),
+    section({ id: 'two', classCode: 'busi 2' }),
+    section({ id: 'desc', classCode: '', description: 'Art history' }),
+  ];
+  assert.deepEqual(C.sortSections(list).map(s => s.id), ['desc', 'two', 'ten', 'math', 'blank']);
+  assert.deepEqual(C.sortSections(list, 'unknown').map(s => s.id), ['desc', 'two', 'ten', 'math', 'blank']);
+  assert.deepEqual(list.map(s => s.id), ['blank', 'math', 'ten', 'two', 'desc']);
+});
+
+test('recently added order remains newest first after editing and switching sort modes', () => {
+  const list = [section({ id: 'old', classCode: 'ZOO 100' }), section({ id: 'new', classCode: 'ART 100' })];
+  C.sortSections(list);
+  C.sortSections(list, 'color');
+  list[0] = { ...list[0], classCode: 'AAA 100', credits: 4, color: 3 };
+  assert.deepEqual(C.sortSections(list, 'recent').map(s => s.id), ['new', 'old']);
+  assert.deepEqual(C.sortSections(list).map(s => s.id), ['old', 'new']);
+});
+
+test('color sorting groups the palette and orders each group alphabetically without hiding unchecked classes', () => {
+  const list = [
+    section({ id: 'gold', color: 2, classCode: 'ART 100' }),
+    section({ id: 'sage-z', color: 0, classCode: 'ZOO 100', checked: false }),
+    section({ id: 'sand', color: 1, classCode: 'ART 100' }),
+    section({ id: 'sage-a', color: 0, classCode: 'ART 100' }),
+    section({ id: 'sage-blank', color: 0, classCode: '', description: '' }),
+  ];
+  assert.deepEqual(C.sortSections(list, 'color').map(s => s.id), ['sage-a', 'sage-z', 'sage-blank', 'sand', 'gold']);
+  assert.deepEqual(C.sortSections([section({ id: 'a' }), section({ id: 'b' })]).map(s => s.id), ['a', 'b']);
+});
+
+test('every selectable color survives saved schedule normalization and invalid colors fall back safely', () => {
+  for (let color = 0; color < C.COLORS.length; color++) {
+    assert.equal(C.normalize(JSON.parse(JSON.stringify(section({ color })))).color, color);
+  }
+  for (const color of [undefined, -1, C.COLORS.length, '2', null]) assert.equal(C.normalize(section({ color })).color, 0);
+});
