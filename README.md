@@ -42,3 +42,16 @@ The published artifact contains only `index.html`, `styles.css`, `app.js`, `sche
 Schedules stay in browser storage. The published address has separate storage from a local file or localhost, so existing local classes will need to be entered again on the hosted site. There is no account, cloud synchronization, or shared schedule database.
 
 GitHub's instructions: [Creating a Pages site](https://docs.github.com/en/pages/getting-started-with-github-pages/creating-a-github-pages-site), [publishing with Actions](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages).
+
+## Publish with Vercel
+
+Import this GitHub repository into Vercel. The included `vercel.json` configures:
+
+- **Framework Preset:** Other
+- **Build Command:** `npm run build`
+- **Output Directory:** `dist`
+- **Root Directory:** the repository root (leave it blank)
+
+Vercel should serve the built HTML, CSS, JavaScript, and logo as static files. Neither `app.js` nor the local preview server should run as a Vercel Function. The `framework: null` setting prevents automatic backend framework detection from mistaking the browser's `app.js` for a server entrypoint.
+
+If an older deployment shows `FUNCTION_INVOCATION_FAILED` with `window is not defined`, deploy the latest commit containing `vercel.json`. Changes committed to `main` will deploy automatically when the GitHub integration is connected.
