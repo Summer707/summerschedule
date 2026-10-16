@@ -7,13 +7,14 @@
     { short: 'Sun', name: 'Sunday' },
   ];
   const COLORS = [
-    { bg: '#e8efdc', border: '#cddabd', accent: '#587344', ink: '#2f4a27' },
-    { bg: '#f1e5d9', border: '#dfc7af', accent: '#a47850', ink: '#674422' },
-    { bg: '#fcf1ce', border: '#e6d39b', accent: '#b68d2e', ink: '#745414' },
-    { bg: '#e2ede5', border: '#c2d6c8', accent: '#477459', ink: '#2b5038' },
-    { bg: '#eee4d7', border: '#d8c6ad', accent: '#866342', ink: '#5f4329' },
-    { bg: '#f3ead1', border: '#ddcea0', accent: '#9c822e', ink: '#66541f' },
+    { name: 'Sage', bg: '#e8efdc', border: '#cddabd', accent: '#587344', ink: '#2f4a27' },
+    { name: 'Sand', bg: '#f1e5d9', border: '#dfc7af', accent: '#a47850', ink: '#674422' },
+    { name: 'Gold', bg: '#fcf1ce', border: '#e6d39b', accent: '#b68d2e', ink: '#745414' },
+    { name: 'Forest', bg: '#e2ede5', border: '#c2d6c8', accent: '#477459', ink: '#2b5038' },
+    { name: 'Walnut', bg: '#eee4d7', border: '#d8c6ad', accent: '#866342', ink: '#5f4329' },
+    { name: 'Olive gold', bg: '#f3ead1', border: '#ddcea0', accent: '#9c822e', ink: '#66541f' },
   ];
+  const SORT_MODES = ['alphabetical', 'recent', 'color'];
   function minutes(value) {
     if (typeof value !== 'string' || !/^\d{2}:\d{2}$/.test(value)) return NaN;
     const [hour, minute] = value.split(':').map(Number);
@@ -28,6 +29,16 @@
   }
   function title(section) { return section.classCode.trim() || section.description.trim(); }
   function subtitle(section) { return section.classCode.trim() && section.description.trim() ? section.description.trim() : ''; }
+  function sortSections(sections, mode = 'alphabetical') {
+    // The saved array stays in creation order, so edits and sorting never change recency.
+    if (mode === 'recent') return [...sections].reverse();
+    return [...sections].sort((a, b) => {
+      if (mode === 'color' && a.color !== b.color) return a.color - b.color;
+      const aName = title(a), bName = title(b);
+      if (!aName || !bName) return Number(!aName) - Number(!bName);
+      return aName.localeCompare(bName, 'en', { numeric: true, sensitivity: 'base' });
+    });
+  }
   function validate(section) {
     const start = minutes(section.startTime), end = minutes(section.endTime);
     if (!Number.isFinite(start) || !Number.isFinite(end)) return 'Enter a valid start and end time.';
@@ -94,7 +105,7 @@
     const total = sections.filter(s => s.checked).reduce((sum, s) => sum + (s.credits ?? 0), 0);
     return Number(total.toFixed(10));
   }
-  const api = { DAYS, COLORS, minutes, formatTime, title, subtitle, validate, normalize, layoutDay, calendarBounds, weeklyMinutes, totalCredits };
+  const api = { DAYS, COLORS, SORT_MODES, minutes, formatTime, title, subtitle, sortSections, validate, normalize, layoutDay, calendarBounds, weeklyMinutes, totalCredits };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.ScheduleCore = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

@@ -68,6 +68,7 @@
             <div class="field"><label for="start-time">Start time</label><input id="start-time" name="startTime" type="time" value="09:00" required /></div>
             <div class="field"><label for="end-time">End time</label><input id="end-time" name="endTime" type="time" value="10:00" required /></div>
           </div>
+          <fieldset class="color-fieldset"><legend>Color</legend><div id="color-options" class="color-options"></div></fieldset>
           <div class="form-bottom">
             <fieldset class="days-fieldset"><legend>Days of the week <span class="required-hint">Choose at least one</span></legend><div id="day-options" class="day-options"></div></fieldset>
             <div class="submit-actions"><button id="cancel-edit" class="button button-secondary" type="button" hidden>Cancel</button><button id="submit-button" class="button button-primary" type="submit"><svg class="icon"><use href="#i-plus"/></svg><span>Add section</span></button></div>
@@ -77,7 +78,7 @@
       </section>
 
       <section class="sections-card" aria-labelledby="sections-heading">
-        <div class="section-heading"><div class="section-heading-title"><h2 id="sections-heading">Your sections</h2><span id="section-count" class="count-badge">0</span></div></div>
+        <div class="section-heading"><div class="section-heading-title"><h2 id="sections-heading">Your sections</h2><span id="section-count" class="count-badge">0</span></div><div class="sort-control"><label for="section-sort">Sort by</label><select id="section-sort"><option value="alphabetical">Alphabetical</option><option value="recent">Recently added</option><option value="color">Color</option></select></div></div>
         <div id="sections-empty" class="sections-empty"><h3>No sections yet</h3></div>
         <ul id="section-list" class="section-list" aria-label="Sections to show on the calendar"></ul>
       </section>

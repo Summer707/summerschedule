@@ -3,9 +3,11 @@
   const C = window.ScheduleCore;
   // Retain the original storage key so the rename preserves existing schedules.
   const STORAGE_KEY = 'weekwise.sections.v1';
+  const SORT_KEY = 'weekwise.sort.v1';
   const $ = id => document.getElementById(id);
   const form = $('class-form');
   let sections = [], editingId = null, lastDeleted = null, toastTimer;
+  let sortMode = 'alphabetical';
   let storageAvailable = true;
   let conflictIds = new Set();
 
@@ -24,10 +26,14 @@
   }
   function paint(element, color) {
     const palette = C.COLORS[color];
-    for (const [key, value] of Object.entries(palette)) element.style.setProperty('--event-' + key, value);
+    for (const key of ['bg', 'border', 'accent', 'ink']) element.style.setProperty('--event-' + key, palette[key]);
   }
   function save() {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(sections)); storageAvailable = true; }
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(sections));
+      localStorage.setItem(SORT_KEY, sortMode);
+      storageAvailable = true;
+    }
     catch { storageAvailable = false; }
     updateSaveStatus();
   }
@@ -64,6 +70,7 @@
     $('credits').value = section.credits ?? '';
     $('start-time').value = section.startTime;
     $('end-time').value = section.endTime;
+    form.querySelectorAll('input[name="color"]').forEach(input => { input.checked = input.value === String(section.color); });
     form.querySelectorAll('input[name="day"]').forEach(input => { input.checked = section.days.includes(Number(input.value)); });
     $('form-heading').textContent = duplicate ? 'Add another section' : 'Edit section';
     $('submit-button').replaceChildren(icon(duplicate ? 'plus' : 'check'), node('span', '', duplicate ? 'Add section' : 'Save changes'));
@@ -122,14 +129,15 @@
     const list = $('section-list'); list.replaceChildren();
     $('sections-empty').hidden = sections.length > 0;
     $('section-count').textContent = sections.length;
-    const nameCounts = new Map(), nameIndexes = new Map();
+    const nameCounts = new Map(), optionIndexes = new Map();
     for (const section of sections) {
       const key = C.title(section).toLocaleLowerCase();
       nameCounts.set(key, (nameCounts.get(key) || 0) + 1);
+      optionIndexes.set(section.id, nameCounts.get(key));
     }
-    for (const section of sections) {
+    for (const section of C.sortSections(sections, sortMode)) {
       const key = C.title(section).toLocaleLowerCase();
-      const index = (nameIndexes.get(key) || 0) + 1; nameIndexes.set(key, index);
+      const index = optionIndexes.get(section.id);
       const row = node('li', 'section-row' + (!section.checked ? ' is-off' : '') + (editingId === section.id ? ' is-editing' : ''));
       row.dataset.sectionId = section.id; paint(row, section.color);
       const checkbox = node('input', 'section-check'); checkbox.type = 'checkbox'; checkbox.id = 'section-' + section.id; checkbox.checked = section.checked;
@@ -147,6 +155,19 @@
       if (section.credits != null) meta.append(node('span', 'section-credits', `${section.credits} credit${section.credits === 1 ? '' : 's'}`));
       info.append(meta);
       const actions = node('div', 'section-actions');
+      const colorSelect = node('select', 'section-color');
+      colorSelect.id = 'color-' + section.id;
+      colorSelect.setAttribute('aria-label', `Color for ${C.title(section) || 'blank section'}, option ${index}`);
+      colorSelect.title = `Color: ${C.COLORS[section.color].name}`;
+      for (const [color, palette] of C.COLORS.entries()) {
+        const option = node('option', '', palette.name); option.value = color; colorSelect.append(option);
+      }
+      colorSelect.value = section.color;
+      colorSelect.addEventListener('change', () => {
+        section.color = Number(colorSelect.value); save(); render();
+        $('color-' + section.id)?.focus({ preventScroll: true });
+      });
+      actions.append(colorSelect);
       const actionSpecs = [
         ['edit', 'Edit section', () => fillEditor(section)],
         ['copy', 'Use as a new section', () => fillEditor(section, true)],
@@ -172,7 +193,19 @@
     const label = node('label', 'day-option'); const input = node('input'); input.type = 'checkbox'; input.name = 'day'; input.value = index; input.setAttribute('aria-label', day.name);
     const text = node('span'); text.append(icon('check'), document.createTextNode(day.short)); label.append(input, text); $('day-options').append(label);
   }
+  for (const [value, name] of [['auto', 'Automatic'], ...C.COLORS.map((palette, index) => [String(index), palette.name])]) {
+    const label = node('label', 'color-option' + (value === 'auto' ? ' color-auto' : ''));
+    label.title = name;
+    const input = node('input'); input.type = 'radio'; input.name = 'color'; input.value = value;
+    input.setAttribute('aria-label', name); input.checked = input.defaultChecked = value === 'auto';
+    const swatch = node('span');
+    if (value === 'auto') swatch.textContent = 'Auto';
+    else { paint(label, Number(value)); swatch.append(icon('check')); }
+    label.append(input, swatch); $('color-options').append(label);
+  }
   try {
+    const storedSort = localStorage.getItem(SORT_KEY);
+    if (C.SORT_MODES.includes(storedSort)) sortMode = storedSort;
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
       const data = JSON.parse(stored);
@@ -190,6 +223,7 @@
     storageAvailable = false;
     announce('Saved schedule could not be read. Keep this tab open until browser storage is available.');
   }
+  $('section-sort').value = sortMode;
   updateSaveStatus(); render();
 
   form.addEventListener('input', hideError);
@@ -199,6 +233,7 @@
     const original = sections.find(s => s.id === editingId);
     const name = $('class-code').value.trim() || $('description').value.trim();
     const matching = sections.find(s => C.title(s).toLocaleLowerCase() === name.toLocaleLowerCase());
+    const chosenColor = form.querySelector('input[name="color"]:checked').value;
     const section = {
       id: editingId || (globalThis.crypto?.randomUUID ? crypto.randomUUID() : 's-' + Date.now() + '-' + Math.random().toString(36).slice(2)),
       classCode: $('class-code').value.trim(), description: $('description').value.trim(),
@@ -206,7 +241,7 @@
       startTime: $('start-time').value, endTime: $('end-time').value,
       days: [...form.querySelectorAll('input[name="day"]:checked')].map(input => Number(input.value)),
       checked: original ? original.checked : true,
-      color: original ? original.color : matching ? matching.color : sections.length % C.COLORS.length,
+      color: chosenColor !== 'auto' ? Number(chosenColor) : original ? original.color : matching ? matching.color : sections.length % C.COLORS.length,
     };
     const error = C.validate(section);
     if (error) {
@@ -223,6 +258,9 @@
     announce(original ? 'Section updated.' : 'Section added.');
   });
   $('cancel-edit').addEventListener('click', () => { form.reset(); resetEditor(); renderList(); });
+  $('section-sort').addEventListener('change', () => {
+    sortMode = $('section-sort').value; save(); renderList();
+  });
   $('undo-delete').addEventListener('click', () => {
     if (!lastDeleted) return;
     sections.splice(lastDeleted.index, 0, lastDeleted.section); lastDeleted = null;
@@ -232,6 +270,11 @@
   const wideScreen = matchMedia('(min-width: 1450px)');
   wideScreen.addEventListener('change', renderCalendar);
   window.addEventListener('storage', event => {
+    if (event.key === SORT_KEY || event.key === null) {
+      sortMode = C.SORT_MODES.includes(event.newValue) ? event.newValue : 'alphabetical';
+      $('section-sort').value = sortMode;
+      if (event.key === SORT_KEY) { renderList(); return; }
+    }
     if (event.key !== STORAGE_KEY && event.key !== null) return;
     try {
       const data = event.newValue ? JSON.parse(event.newValue) : [];

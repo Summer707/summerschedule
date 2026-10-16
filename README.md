@@ -12,9 +12,10 @@ Use the same browser and address each time: your schedule is saved automatically
 
 1. Enter a class code, a description, both, or neither. When both are entered, the class code appears above the description. With neither, the name remains blank.
 2. Enter optional credits (including fractional credits), set start and end times, then check the days the section meets.
-3. Select **Add section**. It appears in the checklist and on the calendar.
+3. Choose a color, or leave **Auto** selected, then select **Add section**. It appears in the checklist and on the calendar. The small color circle beside each saved section changes its color immediately.
 4. Check or uncheck sections to compare possible schedules. You may add any number of options for the same class. Overlapping sections appear side by side.
 5. Use the pencil to edit, the copy button to prefill a new option, and the trash button to delete. Deleting offers an undo button.
+6. Sections sort alphabetically by default, using the description when the class code is blank. **Sort by** also offers **Recently added** (newest first) and **Color** (grouped in palette order, then alphabetical). Blank names appear last. Your sort preference is remembered in this browser. Editing a section does not change when it was added.
 
 The calendar shows the total credits for checked sections, counting each section once regardless of its meeting days. Blank credits count as zero. Existing saved classes stay intact and can be edited to add credits.
 
